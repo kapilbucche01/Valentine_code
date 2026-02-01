@@ -77,21 +77,21 @@
 
         button {
             font-family: 'Quicksand', sans-serif;
-            font-size: 1.2rem;
             font-weight: 700;
-            padding: 15px 40px;
             border: none;
             border-radius: 50px;
-            cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
         #yesBtn {
+            font-size: 1.2rem;
+            padding: 15px 40px;
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
             box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+            cursor: pointer;
         }
 
         #yesBtn:hover {
@@ -100,11 +100,15 @@
         }
 
         #noBtn {
+            font-size: 0.9rem;
+            padding: 10px 25px;
             background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
             color: #333;
             position: absolute;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
             transition: all 0.1s ease;
+            cursor: default;
+            pointer-events: none;
         }
 
         #noBtn:hover {
@@ -208,41 +212,6 @@
         const container = document.querySelector('.container');
 
         let noBtnSpeed = 3;
-        let isSlowingDown = false;
-        let slowDownTimer;
-
-        // Get random position within window bounds
-        function getRandomPosition() {
-            const containerRect = container.getBoundingClientRect();
-            const btnRect = noBtn.getBoundingClientRect();
-            
-            const maxX = window.innerWidth - btnRect.width - 20;
-            const maxY = window.innerHeight - btnRect.height - 20;
-            
-            const x = Math.random() * maxX;
-            const y = Math.random() * maxY;
-            
-            return { x, y };
-        }
-
-        // Move No button to random position
-        function moveNoButton() {
-            const pos = getRandomPosition();
-            noBtn.style.position = 'fixed';
-            noBtn.style.left = pos.x + 'px';
-            noBtn.style.top = pos.y + 'px';
-        }
-
-        // Initial position for No button
-        function setInitialNoPosition() {
-            const yesRect = yesBtn.getBoundingClientRect();
-            noBtn.style.position = 'absolute';
-            noBtn.style.left = 'auto';
-            noBtn.style.right = '0';
-            noBtn.style.top = '0';
-        }
-
-        setInitialNoPosition();
 
         // Mouse move handler for No button
         let mouseX = 0, mouseY = 0;
@@ -251,62 +220,33 @@
             mouseX = e.clientX;
             mouseY = e.clientY;
 
-            if (noBtn.style.position === 'fixed') {
-                const btnRect = noBtn.getBoundingClientRect();
-                const btnCenterX = btnRect.left + btnRect.width / 2;
-                const btnCenterY = btnRect.top + btnRect.height / 2;
+            const btnRect = noBtn.getBoundingClientRect();
+            const btnCenterX = btnRect.left + btnRect.width / 2;
+            const btnCenterY = btnRect.top + btnRect.height / 2;
 
-                const distance = Math.sqrt(
-                    Math.pow(mouseX - btnCenterX, 2) + 
-                    Math.pow(mouseY - btnCenterY, 2)
-                );
+            const distance = Math.sqrt(
+                Math.pow(mouseX - btnCenterX, 2) + 
+                Math.pow(mouseY - btnCenterY, 2)
+            );
 
-                // If mouse is close, move the button
-                if (distance < 150) {
-                    // Clear slow down timer
-                    clearTimeout(slowDownTimer);
-                    isSlowingDown = false;
-                    
-                    const angle = Math.atan2(btnCenterY - mouseY, btnCenterX - mouseX);
-                    const moveDistance = noBtnSpeed * (150 - distance) / 10;
-                    
-                    let newX = btnRect.left + Math.cos(angle) * moveDistance;
-                    let newY = btnRect.top + Math.sin(angle) * moveDistance;
-
-                    // Keep within bounds
-                    newX = Math.max(0, Math.min(newX, window.innerWidth - btnRect.width));
-                    newY = Math.max(0, Math.min(newY, window.innerHeight - btnRect.height));
-
-                    noBtn.style.left = newX + 'px';
-                    noBtn.style.top = newY + 'px';
-                }
-            }
-        });
-
-        // Click handler for No button (with trick mechanic)
-        noBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            
-            if (!isSlowingDown) {
-                // Start floating
-                moveNoButton();
+            // If mouse is close, move the button away
+            if (distance < 120) {
+                const angle = Math.atan2(btnCenterY - mouseY, btnCenterX - mouseX);
+                const moveDistance = noBtnSpeed * (120 - distance) / 8;
                 
-                // Slow down after a moment
-                isSlowingDown = true;
-                slowDownTimer = setTimeout(() => {
-                    // Position No button right above Yes button
-                    const yesRect = yesBtn.getBoundingClientRect();
-                    const noBtnRect = noBtn.getBoundingClientRect();
-                    
-                    noBtn.style.left = (yesRect.left + yesRect.width/2 - noBtnRect.width/2) + 'px';
-                    noBtn.style.top = (yesRect.top - noBtnRect.height - 10) + 'px';
-                    
-                    // After positioning, make it clickable to Yes
-                    setTimeout(() => {
-                        // Trigger Yes button click
-                        yesBtn.click();
-                    }, 100);
-                }, 1500);
+                let newX = btnRect.left + Math.cos(angle) * moveDistance;
+                let newY = btnRect.top + Math.sin(angle) * moveDistance;
+
+                // Keep within bounds
+                const maxX = window.innerWidth - btnRect.width - 20;
+                const maxY = window.innerHeight - btnRect.height - 20;
+                
+                newX = Math.max(20, Math.min(newX, maxX));
+                newY = Math.max(20, Math.min(newY, maxY));
+
+                noBtn.style.position = 'fixed';
+                noBtn.style.left = newX + 'px';
+                noBtn.style.top = newY + 'px';
             }
         });
 
